@@ -1,0 +1,2 @@
+# base.txt
+Django==4.0
