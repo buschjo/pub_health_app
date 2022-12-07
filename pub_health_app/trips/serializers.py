@@ -5,4 +5,4 @@ from rest_framework import serializers
 class TripSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Trip
-        fields = ['start_time', 'end_time', 'start_long', 'start_lat']
+        fields = ['start_time', 'end_time', 'start_long', 'start_lat', 'end_long', 'end_lat']
