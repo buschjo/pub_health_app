@@ -15,6 +15,16 @@
         
     </head>
     <body>
+
+        {% if queryset %}
+        <ul>
+            {% for trip in queryset %}
+                <li>{{ trip.start_time }}</li>
+            {% endfor %}
+            </ul>
+        {% else %}
+            <p>No maps are available.</p>
+        {% endif %}
         <div id="map"></div>
         <script src="{% static 'map.js' %}"></script>
     </body>
