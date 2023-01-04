@@ -1,9 +1,0 @@
-{% if latest_trips_list %}
-    <ul>
-    {% for trip in latest_trips_list %}
-        <li><a href="{% url 'trips:detail' trip.id %}">{{ trip.start_time }}</a></li>
-    {% endfor %}
-    </ul>
-{% else %}
-    <p>No polls are available.</p>
-{% endif %}

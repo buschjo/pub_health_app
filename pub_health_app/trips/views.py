@@ -6,14 +6,22 @@
 #     return render(request, 'trips/detail.html', {'trip': trip})
 
 from .models import Trip
+from .models import Map
 from rest_framework import viewsets
 from rest_framework import permissions
 from trips.serializers import TripSerializer
+from trips.serializers import MapSerializer
 # from django.shortcuts import get_object_or_404, render
 from django.http import HttpResponse
 # from django.http import Http404
+from rest_framework.renderers import TemplateHTMLRenderer
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from django.views.generic.base import TemplateView
+from rest_framework.views import APIView
+
+
+
 
 # def detail(request):
 #     latest_trips_list = Trip.objects.order_by('-start_time')[:5]
@@ -39,3 +47,14 @@ class TripViewSet(viewsets.ModelViewSet):
     def test_this(self, request, pk=None):
         trip = Trip.objects.get(pk=pk)
         return Response({'status': 'password set'})
+
+
+
+class MapViewSet(APIView):
+    renderer_classes = [TemplateHTMLRenderer]
+    template_name = 'map.html'
+
+    def get(self, request):
+        queryset = Map.objects.all()
+        return Response({'map': queryset})
+

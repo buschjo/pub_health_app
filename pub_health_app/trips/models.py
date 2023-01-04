@@ -2,6 +2,7 @@ import datetime
 from django.db import models
 from django.utils import timezone
 
+
 # Create your models here.
 
 class Trip(models.Model):
@@ -17,3 +18,13 @@ class Trip(models.Model):
 
     def was_published_recently(self):
         return self.start_time >= timezone.now() - datetime.timedelta(days=1)
+
+
+class Map(models.Model):
+   name = models.CharField(max_length=250)
+   lon = models.DecimalField(max_digits=8, decimal_places=6)
+   lat = models.DecimalField(max_digits=8, decimal_places=6)
+
+   def __str__(self):
+    return self.name
+
