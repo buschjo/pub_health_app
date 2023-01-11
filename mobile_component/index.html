@@ -1,0 +1,19 @@
+<!--This is based on https://learn.microsoft.com/en-us/microsoft-edge/progressive-web-apps-chromium/how-to/ (accessed: 11.01.2023)-->
+<!DOCTYPE html>
+<html lang="en-US" dir="ltr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <link rel="shortcut icon" href="/images/mobile_logo_192.png" />
+    <link rel="manifest" href="/manifest.json">
+    <title>My Sample PWA</title>
+  </head>
+  <body>
+    <h1>My Sample PWA</h1>
+  </body>
+  <script>
+    if('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js', { scope: '/' });
+    }
+    </script>    
+</html>
