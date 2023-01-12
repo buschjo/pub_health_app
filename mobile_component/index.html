@@ -9,11 +9,47 @@
     <title>My Sample PWA</title>
   </head>
   <body>
-    <h1>My Sample PWA</h1>
+    <h1>Mobile Component</h1>
+    <a href="https://medium.com/@onejohi/introducing-geolocation-in-your-pwas-65713faba51a">Location Data Tutorial</a> 
+    <a href="https://www.w3schools.com/js/js_api_geolocation.asp">Other Location Data Tutorial</a> 
+    <p>Start Server in parent folder mit npx http-server</p>
+    <!-- <button onclick="getLocation()">Try It</button> -->
+    <p id="demo"></p>
   </body>
   <script>
     if('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/sw.js', { scope: '/' });
     }
-    </script>    
+    </script>
+    <!-- <script type=zc"text/javascript" src="location.js"></script> -->
+    <script>
+      window.onload = function(){
+
+        function showPosition(position) {
+          x.innerHTML = position.coords.latitude + "," + position.coords.longitude
+        }
+
+        const x = document.getElementById("demo");
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(showPosition);
+        } else {
+          x.innerHTML = "Geolocation is not supported by this browser.";
+        }
+        
+      }
+      // const x = document.getElementById("demo");
+      // function getLocation() {
+      //   if (navigator.geolocation) {
+      //     navigator.geolocation.getCurrentPosition(showPosition);
+      //   } else {
+      //     x.innerHTML = "Geolocation is not supported by this browser.";
+      //   }
+      // }
+      
+      // function showPosition(position) {
+      // //   x.innerHTML = "Latitude: " + position.coords.latitude +
+      // //   "<br>Longitude: " + position.coords.longitude;
+      //   x.innerHTML = position.coords.latitude + "," + position.coords.longitude
+      // }
+      </script> 
 </html>

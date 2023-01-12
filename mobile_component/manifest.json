@@ -1,8 +1,8 @@
 {
     "lang": "en-us",
-    "name": "My Sample PWA",
-    "short_name": "SamplePWA",
-    "description": "A sample PWA for testing purposes",
+    "name": "Mobile Component",
+    "short_name": "mobile",
+    "description": "A app for locating a device and showing a route",
     "start_url": "/",
     "background_color": "#2f3d58",
     "theme_color": "#2f3d58",
