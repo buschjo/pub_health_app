@@ -4,8 +4,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <link rel="shortcut icon" href="/images/mobile_logo_192.png" />
-    <link rel="manifest" href="/manifest.json">
+    <link rel="shortcut icon" href="/mobile_component/images/mobile_logo_192.png" />
+    <link rel="manifest" href="/mobile_component/manifest.json">
     <title>My Sample PWA</title>
   </head>
   <body>
@@ -18,7 +18,7 @@
   </body>
   <script>
     if('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js', { scope: '/' });
+      navigator.serviceWorker.register('/mobile_component/sw.js', { scope: '/mobile_component/' });
     }
     </script>
     <!-- <script type=zc"text/javascript" src="location.js"></script> -->
