@@ -1,0 +1,50 @@
+<!-- This is based on https://learn.microsoft.com/en-us/microsoft-edge/progressive-web-apps-chromium/how-to/ (accessed: 11.01.2023) -->
+<!DOCTYPE html>
+<html lang="en-US" dir="ltr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <link rel="shortcut icon" href="/mobile_component/images/mobile_logo_192.png" />
+    <link rel="manifest" href="/mobile_component/manifest.json">
+    <title>My Sample PWA</title>
+  </head>
+  <body>
+    <h1>Mobile Component</h1>
+    <a href="https://medium.com/@onejohi/introducing-geolocation-in-your-pwas-65713faba51a">Location Data Tutorial</a> 
+    <a href="https://www.w3schools.com/js/js_api_geolocation.asp">Other Location Data Tutorial</a> 
+    <p>Start Server in parent folder mit npx http-server</p>
+    <button onclick="getLocation()">Try It</button>
+    <p id="demo"></p>
+
+    <div id="demoMap" style="height:250px"></div>
+
+  </body>
+  <script>
+    if('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/mobile_component/sw.js', { scope: '/mobile_component/' });
+    }
+    </script>
+    <script type="text/javascript" src="OpenLayers.js"></script>
+    <!-- <script type=zc"text/javascript" src="location.js"></script> -->
+    <script>
+      window.onload = function(){
+
+        function showPosition(position) {
+          x.innerHTML = position.coords.latitude + "," + position.coords.longitude
+        }
+
+        const x = document.getElementById("demo");
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(showPosition);
+        } else {
+          x.innerHTML = "Geolocation is not supported by this browser.";
+        }
+        
+      }
+      </script> 
+      <script>
+        map = new OpenLayers.Map("demoMap");
+        map.addLayer(new OpenLayers.Layer.OSM());
+        map.zoomToMaxExtent();
+    </script>
+</html>
