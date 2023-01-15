@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'trips.apps.TripsConfig',
+    'routing.apps.RoutingConfig'
     # 'django.contrib.gis',
 ]
 

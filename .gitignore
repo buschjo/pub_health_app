@@ -132,3 +132,6 @@ dmypy.json
 # Python VENV
 Scripts/
 pyvenv.cfg
+
+#Generated files from Pandas and others
+share

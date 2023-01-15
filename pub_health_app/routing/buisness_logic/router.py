@@ -1,10 +1,23 @@
+import datetime
 import traceback
+from collections.abc import MutableSequence
+from decimal import Decimal
+from io import BytesIO
 
 import numpy as np
 import osmnx as ox
 import pandas as pd
+from django.utils import timezone
+
+from ..models import EmergencyVehicle, Emergency
 
 ox.config(use_cache=True, log_console=True)
+
+import matplotlib.pyplot as plt
+
+import matplotlib
+
+matplotlib.use('Agg')
 
 import requests
 import json
@@ -15,19 +28,17 @@ class Router:
                    "96o6iQGlGE0zxe2M2gwjQ15hlqfhmhsR", "0WNfKPiMCQxvW9aLJylePtrkGPl4PwTU",
                    "Aw8RSGKN2jmHh3HVi6APgTmlu6SZVwAG", "DcUnnhbjYjbR4fd4c0bUBYUz5PYa9Ttb",
                    "HaUwLXM2aimAfutceDmG1iGXDPzhDyxx"]
+
     graph = None
     edges = None
     nodes = None
 
     def __init__(self):
-        self.graph = self.create_graph("Berlin Alexanderplatz", 500, "drive")
+        self.graph = self.create_graph("Berlin Lichtenberg", 800, "drive")
         self.nodes, self.edges = ox.graph_to_gdfs(self.graph, nodes=True, edges=True)
-        self.add_live_data_to_graph()
+        # self.add_live_data_to_graph()
         # generate Map
-        ec = ox.plot.get_edge_colors_by_attr(self.graph, attr="trafficDelayInSeconds", cmap="RdYlGn_r")
-        fig, ax = ox.plot_graph(
-            self.graph, show=True, save=True, filepath="graph.png", edge_color=ec, edge_linewidth=3
-        )
+        self.get_map()
 
     def create_graph(self, loc, dist, transport_mode, loc_type="address"):
         """
@@ -96,10 +107,49 @@ class Router:
 
         # update graph
         self.nodes.set_index("osmid", inplace=True)
-        self.edges.set_index(["u","v","key"], inplace=True)
+        self.edges.set_index(["u", "v", "key"], inplace=True)
         self.graph = ox.graph_from_gdfs(self.nodes, self.edges)
 
-    def print_edges_with_zero_traffic(self):
-        street = self.edges[self.edges.speed == 0]
-        for (idx, row) in street.iterrows():
-            print(f"{row.loc['u_y']},{row.loc['u_x']},red,marker")
+    def get_map(self):
+        # ec = ox.plot.get_edge_colors_by_attr(self.graph, attr="trafficDelayInSeconds", cmap="RdYlGn_r")
+        ec = ox.plot.get_edge_colors_by_attr(self.graph, attr="length", cmap="RdYlGn_r")
+        return ox.plot_graph(
+            self.graph, show=False, save=False, close=False, filepath="graph.png", edge_color=ec, node_color="gray",
+            edge_linewidth=3
+        )
+
+    def update_map(self):
+        fig, ax = self.get_map()
+        self.update_emergency_vehicles(fig, ax)
+        self.update_emergencies(fig, ax)
+
+        buf = BytesIO()
+        plt.savefig(buf, format="png")
+        return buf.getvalue()
+
+    def update_emergency_vehicles(self, fig, ax):
+        emergency_vehicles: MutableSequence[EmergencyVehicle] = EmergencyVehicle.objects.filter(
+            last_ping__gte=(timezone.now() - datetime.timedelta(minutes=30)))
+        for emergency_vehicle in emergency_vehicles:
+            color = None
+            if emergency_vehicle.currently_dispatch:
+                color = 'blue'
+            else:
+                color = '#7F00FF'
+            ax.scatter(emergency_vehicle.long, emergency_vehicle.lat, c=color, s=100)
+            ax.text(
+                emergency_vehicle.long - Decimal(0.00013), emergency_vehicle.lat - Decimal(0.00013),
+                f"{emergency_vehicle.call_name}\nLast ping: {emergency_vehicle.last_ping.strftime('%H:%M:%S')}",
+                ha="right", va="top", fontsize=8, bbox=dict(alpha=0.7, boxstyle="round,pad=0.3"))
+        return fig, ax
+
+    def update_emergencies(self, fig, ax):
+        emergencies: MutableSequence[Emergency] = Emergency.objects.filter(
+            resolved=False)
+        for emergency in emergencies:
+            ax.scatter(emergency.long, emergency.lat, c='red', s=100)
+            ax.text(
+                emergency.long - Decimal(0.00013), emergency.lat - Decimal(0.00013),
+                f"{emergency.type}\nHappened: {emergency.timestamp.strftime('%H:%M:%S')}\nDispatched: {emergency.dispatched_to}",
+                ha="right", va="top", fontsize=8, bbox=dict(facecolor='red', alpha=0.7, boxstyle="round,pad=0.3"))
+        return fig, ax

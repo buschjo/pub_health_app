@@ -21,7 +21,7 @@ from trips import views
 
 from django.contrib import admin
 
-from routing.client_interfaces import init
+from routing.client_interfaces import Interfaces
 
 router = routers.DefaultRouter()
 router.register(r'trips', views.TripViewSet)
@@ -35,5 +35,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('map', views.MapViewSet.as_view(), name="Map"),
     path('map_josefine', views.index, name='index'),
-    path('routing', init.get_map)
+    path('emergency-vehicle', Interfaces.update_emergency_vehicle),
+    path('emergency', Interfaces.add_emergency)
 ]
