@@ -2,6 +2,9 @@
 Django==4.1.5
 djangorestframework==3.14.0
 django-environ==0.9.0
+networkx
 geopandas
 plotly_express
 osmnx
+scikit-learn
+git+https://github.com/MediocreMarcel/taxicab-custom-weight

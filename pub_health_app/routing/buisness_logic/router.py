@@ -7,9 +7,11 @@ from io import BytesIO
 import numpy as np
 import osmnx as ox
 import pandas as pd
+import taxicab as tc
 from django.utils import timezone
+from shapely import to_geojson, Point, LineString, MultiLineString, ops
 
-from ..models import EmergencyVehicle, Emergency
+from ..models import EmergencyVehicle, Emergency, RouteRecommendation
 
 ox.config(use_cache=True, log_console=True)
 
@@ -29,12 +31,16 @@ class Router:
                    "Aw8RSGKN2jmHh3HVi6APgTmlu6SZVwAG", "DcUnnhbjYjbR4fd4c0bUBYUz5PYa9Ttb",
                    "HaUwLXM2aimAfutceDmG1iGXDPzhDyxx"]
 
+    WEIGHT = "travel_time"
+
     graph = None
     edges = None
     nodes = None
 
     def __init__(self):
         self.graph = self.create_graph("Berlin Lichtenberg", 800, "drive")
+        self.graph = ox.add_edge_speeds(self.graph)  # Impute
+        self.graph = ox.add_edge_travel_times(self.graph)  # Travel time
         self.nodes, self.edges = ox.graph_to_gdfs(self.graph, nodes=True, edges=True)
         # self.add_live_data_to_graph()
         # generate Map
@@ -114,11 +120,29 @@ class Router:
         # ec = ox.plot.get_edge_colors_by_attr(self.graph, attr="trafficDelayInSeconds", cmap="RdYlGn_r")
         ec = ox.plot.get_edge_colors_by_attr(self.graph, attr="length", cmap="RdYlGn_r")
         return ox.plot_graph(
-            self.graph, show=False, save=False, close=False, filepath="graph.png", edge_color=ec, node_color="gray",
+            self.graph, show=False, save=False, close=False, edge_color=ec, node_color="gray",
             edge_linewidth=3
         )
 
-    def update_map(self):
+    def get_recommended_vehicle_for_emergency(self, emergency: Emergency):
+        emergency_vehicles: MutableSequence[EmergencyVehicle] = EmergencyVehicle.objects.filter(
+            last_ping__gte=(timezone.now() - datetime.timedelta(minutes=30)), currently_dispatch=False)
+
+        shortest_route = None
+
+        for emergency_vehicle in emergency_vehicles:
+            # Calculate the shortest path
+            route = tc.shortest_path(self.graph, (float(emergency_vehicle.lat), float(emergency_vehicle.long)),
+                                     (float(emergency.lat), float(emergency.long)), weight=self.WEIGHT)
+            if shortest_route is None or route[4] < shortest_route.weight:
+                shortest_route = RouteRecommendation(vehicle=emergency_vehicle, emergency=emergency,
+                                                     nodes=route[1], start_linestring=to_geojson(route[2]),
+                                                     end_linestring=to_geojson(route[3]), weight=route[4],
+                                                     length=route[0])
+        shortest_route.save()
+        return shortest_route
+
+    def update_map(self) -> bytes:
         fig, ax = self.get_map()
         self.update_emergency_vehicles(fig, ax)
         self.update_emergencies(fig, ax)
@@ -153,3 +177,42 @@ class Router:
                 f"{emergency.type}\nHappened: {emergency.timestamp.strftime('%H:%M:%S')}\nDispatched: {emergency.dispatched_to}",
                 ha="right", va="top", fontsize=8, bbox=dict(facecolor='red', alpha=0.7, boxstyle="round,pad=0.3"))
         return fig, ax
+
+    def create_map_from_recommended_route(self, route: RouteRecommendation):
+        '''
+        Create a binary string containing the map with the given route
+        :param route: array of node ids forming the route
+        :return: binary of image
+        '''
+        fig, ax = self.get_map()
+        fig, ax = tc.plot_graph_route(self.graph, route.get_tc_tupel(), route_linewidth=6, node_size=0, bgcolor='k',
+                                      show=False,
+                                      save=False, close=False, ax=ax, route_color='red', route_alpha=0.8)
+        self.update_emergency_vehicles(fig, ax)
+        self.update_emergencies(fig, ax)
+
+        buf = BytesIO()
+        plt.savefig(buf, format="png")
+        return buf.getvalue()
+
+    def dispatch_to_recommended_route(self, route: RouteRecommendation):
+        geo_json = self.get_route_as_geojson(route)
+        print(geo_json)
+        # Call Vehicle endpoint
+        # route.vehicle.currently_dispatch=True
+        # route.vehicle.save()
+        pass
+
+    def get_route_as_geojson(self, route: RouteRecommendation):
+        linestrings = [route.get_start_linestring()]
+        for u, v in zip(route.nodes[:-1], route.nodes[1:]):
+            data = min(self.graph.get_edge_data(u, v).values(), key=lambda d: d[self.WEIGHT])
+            if "geometry" in data:
+                linestrings.append(data["geometry"])
+            else:
+                linestrings.append(LineString([(self.graph.nodes[u]["x"], self.graph.nodes[u]["y"]),
+                                             (self.graph.nodes[v]["x"], self.graph.nodes[v]["y"])]))
+        linestrings.append(route.get_end_linestring())
+        multi_line_string = MultiLineString(linestrings)
+        return to_geojson(ops.linemerge(multi_line_string))
+

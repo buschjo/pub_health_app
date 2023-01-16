@@ -36,5 +36,8 @@ urlpatterns = [
     path('map', views.MapViewSet.as_view(), name="Map"),
     path('map_josefine', views.index, name='index'),
     path('emergency-vehicle', Interfaces.update_emergency_vehicle),
-    path('emergency', Interfaces.add_emergency)
+    path('emergency', Interfaces.add_emergency),
+    path('recommended-vehicle', Interfaces.get_recommended_vehicle_for_emergency),
+    path('recommended-route-map', Interfaces.get_map_of_route),
+    path('dispatch', Interfaces.dispatch_vehicle)
 ]

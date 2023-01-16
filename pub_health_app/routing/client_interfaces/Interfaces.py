@@ -5,8 +5,9 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 from ..buisness_logic.router import Router
-from ..models import EmergencyVehicle
-from ..serializers import EmergencyVehicleSerializer, EmergencySerializer
+from ..models import EmergencyVehicle, Emergency, RouteRecommendation
+from ..serializers import EmergencyVehicleSerializer, EmergencySerializer, IdSerializer, \
+    RouteRecommendationJsonSerializer
 
 router = Router()
 
@@ -41,3 +42,48 @@ def add_emergency(request):
         response = HttpResponse(router.update_map(), content_type="image/png")
         return response
     return Response(emergency_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['GET'])
+def get_recommended_vehicle_for_emergency(request):
+    emergency_id_serializer = IdSerializer(data=request.data)
+    if emergency_id_serializer.is_valid():
+        try:
+            emergency = Emergency.objects.get(
+                id=emergency_id_serializer.validated_data['id'])
+            route = router.get_recommended_vehicle_for_emergency(emergency)
+            print(route)
+            rrs = RouteRecommendationJsonSerializer(route)
+            print(rrs.data)
+            return Response(rrs.data)
+        except Emergency.DoesNotExist:
+            return Response("Can not find emergency with given id", status=status.HTTP_400_BAD_REQUEST)
+    return Response(emergency_id_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['GET'])
+def get_map_of_route(request):
+    id_serializer = IdSerializer(data=request.data)
+    if id_serializer.is_valid():
+        try:
+            route = RouteRecommendation.objects.get(
+                id=id_serializer.validated_data['id'])
+            response = HttpResponse(router.create_map_from_recommended_route(route), content_type="image/png")
+            return response
+        except RouteRecommendation.DoesNotExist:
+            return Response("Can not find route with given id", status=status.HTTP_400_BAD_REQUEST)
+    return Response(id_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(["GET"])
+def dispatch_vehicle(request):
+    id_serializer = IdSerializer(data=request.data)
+    if id_serializer.is_valid():
+        try:
+            route = RouteRecommendation.objects.get(
+                id=id_serializer.validated_data['id'])
+            response = HttpResponse(router.dispatch_to_recommended_route(route))
+            return response
+        except RouteRecommendation.DoesNotExist:
+            return Response("Can not find route with given id", status=status.HTTP_400_BAD_REQUEST)
+    return Response(id_serializer.errors, status=status.HTTP_400_BAD_REQUEST)

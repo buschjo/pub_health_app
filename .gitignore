@@ -135,3 +135,6 @@ pyvenv.cfg
 
 #Generated files from Pandas and others
 share
+
+#Chache
+pub_health_app/cache
