@@ -148,6 +148,8 @@ class Router:
         self.update_emergency_vehicles(fig, ax)
         self.update_emergencies(fig, ax)
 
+        plt.box(False)
+
         buf = BytesIO()
         plt.savefig(buf, format="png")
         return buf.getvalue()
@@ -200,7 +202,7 @@ class Router:
         geo_json = self.get_route_as_geojson(route)
         print(geo_json)
         # Call Vehicle endpoint
-        route.vehicle.currently_dispatch=True
+        route.vehicle.currently_dispatch = True
         route.vehicle.save()
         route.emergency.dispatched_vehicle = route.vehicle
         route.emergency.save()

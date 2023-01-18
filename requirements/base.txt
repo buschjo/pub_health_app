@@ -8,3 +8,4 @@ plotly_express
 osmnx
 scikit-learn
 git+https://github.com/MediocreMarcel/taxicab-custom-weight
+django-cors-headers
