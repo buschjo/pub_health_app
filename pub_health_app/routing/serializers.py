@@ -14,8 +14,8 @@ class EmergencyVehicleSerializer(serializers.HyperlinkedModelSerializer):
 class EmergencySerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Emergency
-        fields = ['lat', 'long', 'type', 'dispatched_to', 'resolved', 'timestamp']
-        extra_kwargs = {'dispatched_to': {'required': False}, 'resolved': {'required': False},
+        fields = ['lat', 'long', 'type', 'dispatched_vehicle', 'resolved', 'timestamp']
+        extra_kwargs = {'dispatched_vehicle': {'required': False}, 'resolved': {'required': False},
                         'timestamp': {'required': False}}
 
 

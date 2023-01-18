@@ -3,13 +3,14 @@ import traceback
 from collections.abc import MutableSequence
 from decimal import Decimal
 from io import BytesIO
+from types import SimpleNamespace
 
 import numpy as np
 import osmnx as ox
 import pandas as pd
 import taxicab as tc
 from django.utils import timezone
-from shapely import to_geojson, Point, LineString, MultiLineString, ops
+from shapely import to_geojson, LineString, MultiLineString, ops
 
 from ..models import EmergencyVehicle, Emergency, RouteRecommendation
 
@@ -174,7 +175,7 @@ class Router:
             ax.scatter(emergency.long, emergency.lat, c='red', s=100)
             ax.text(
                 emergency.long - Decimal(0.00013), emergency.lat - Decimal(0.00013),
-                f"{emergency.type}\nHappened: {emergency.timestamp.strftime('%H:%M:%S')}\nDispatched: {emergency.dispatched_to}",
+                f"{emergency.type}\nHappened: {emergency.timestamp.strftime('%H:%M:%S')}\nDispatched: {(emergency.dispatched_vehicle or SimpleNamespace(call_name='False')).call_name}",
                 ha="right", va="top", fontsize=8, bbox=dict(facecolor='red', alpha=0.7, boxstyle="round,pad=0.3"))
         return fig, ax
 
@@ -199,8 +200,10 @@ class Router:
         geo_json = self.get_route_as_geojson(route)
         print(geo_json)
         # Call Vehicle endpoint
-        # route.vehicle.currently_dispatch=True
-        # route.vehicle.save()
+        route.vehicle.currently_dispatch=True
+        route.vehicle.save()
+        route.emergency.dispatched_vehicle = route.vehicle
+        route.emergency.save()
         pass
 
     def get_route_as_geojson(self, route: RouteRecommendation):
@@ -211,8 +214,13 @@ class Router:
                 linestrings.append(data["geometry"])
             else:
                 linestrings.append(LineString([(self.graph.nodes[u]["x"], self.graph.nodes[u]["y"]),
-                                             (self.graph.nodes[v]["x"], self.graph.nodes[v]["y"])]))
+                                               (self.graph.nodes[v]["x"], self.graph.nodes[v]["y"])]))
         linestrings.append(route.get_end_linestring())
         multi_line_string = MultiLineString(linestrings)
         return to_geojson(ops.linemerge(multi_line_string))
 
+    def resolve_emergency(self, emergency: Emergency):
+        emergency.resolved = True
+        emergency.dispatched_vehicle.currently_dispatch = False
+        emergency.save()
+        emergency.dispatched_vehicle.save()

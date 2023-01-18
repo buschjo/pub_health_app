@@ -82,8 +82,22 @@ def dispatch_vehicle(request):
         try:
             route = RouteRecommendation.objects.get(
                 id=id_serializer.validated_data['id'])
-            response = HttpResponse(router.dispatch_to_recommended_route(route))
+            response = Response(router.dispatch_to_recommended_route(route), status=status.HTTP_200_OK)
             return response
         except RouteRecommendation.DoesNotExist:
             return Response("Can not find route with given id", status=status.HTTP_400_BAD_REQUEST)
+    return Response(id_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(["POST"])
+def resolve_emergency(request):
+    id_serializer = IdSerializer(data=request.data)
+    if id_serializer.is_valid():
+        try:
+            emergency = Emergency.objects.get(
+                id=id_serializer.validated_data['id'])
+            router.resolve_emergency(emergency)
+            response = Response(status=status.HTTP_204_NO_CONTENT)
+            return response
+        except RouteRecommendation.DoesNotExist:
+            return Response("Can not find emergency with given id", status=status.HTTP_400_BAD_REQUEST)
     return Response(id_serializer.errors, status=status.HTTP_400_BAD_REQUEST)

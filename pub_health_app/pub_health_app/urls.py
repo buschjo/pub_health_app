@@ -39,5 +39,6 @@ urlpatterns = [
     path('emergency', Interfaces.add_emergency),
     path('recommended-vehicle', Interfaces.get_recommended_vehicle_for_emergency),
     path('recommended-route-map', Interfaces.get_map_of_route),
-    path('dispatch', Interfaces.dispatch_vehicle)
+    path('dispatch', Interfaces.dispatch_vehicle),
+    path('resolve', Interfaces.resolve_emergency)
 ]

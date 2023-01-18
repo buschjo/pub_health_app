@@ -21,7 +21,7 @@ class Emergency(models.Model):
     lat = models.DecimalField(max_digits=17, decimal_places=15)
     long = models.DecimalField(max_digits=17, decimal_places=15)
     type = models.CharField(max_length=128)
-    dispatched_to = models.BooleanField(default=False)
+    dispatched_vehicle = models.ForeignKey(EmergencyVehicle, on_delete=models.CASCADE, null=True)
     resolved = models.BooleanField(default=False)
     timestamp = models.DateTimeField(default=timezone.now())
 
