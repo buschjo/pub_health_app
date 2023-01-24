@@ -125,7 +125,7 @@ class Router:
             edge_linewidth=3
         )
 
-    def get_recommended_vehicle_for_emergency(self, emergency: Emergency):
+    def get_recommended_vehicle_for_emergency(self, emergency: Emergency, save=True):
         emergency_vehicles: MutableSequence[EmergencyVehicle] = EmergencyVehicle.objects.filter(
             last_ping__gte=(timezone.now() - datetime.timedelta(minutes=30)), currently_dispatch=False)
 
@@ -141,9 +141,12 @@ class Router:
                                                      end_linestring=to_geojson(route[3]), weight=route[4],
                                                      length=route[0])
         if shortest_route is None:
-            raise Exception("No vehicles available")
+            shortest_route = RouteRecommendation(emergency=emergency)
+            shortest_route.save()
+            return shortest_route
         shortest_route.route_geo_json = self.get_route_as_geojson(shortest_route)
-        shortest_route.save()
+        if save:
+            shortest_route.save()
         return shortest_route
 
     def update_map(self) -> bytes:

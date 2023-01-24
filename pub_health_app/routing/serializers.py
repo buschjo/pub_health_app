@@ -46,6 +46,7 @@ class RouteRecommendationJsonSerializer(serializers.Serializer):
     length = serializers.FloatField()
 
 class DispatchSerializer(serializers.Serializer):
+    emergency_id = serializers.IntegerField()
     route = serializers.CharField()
     type = serializers.CharField()
     timestamp = serializers.DateTimeField()

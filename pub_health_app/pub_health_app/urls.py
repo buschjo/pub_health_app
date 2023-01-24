@@ -42,5 +42,6 @@ urlpatterns = [
     path('dispatch', Interfaces.dispatch_vehicle),
     path('resolve', Interfaces.resolve_emergency),
     path('map', Interfaces.get_map),
-    path('recommended-routes', Interfaces.get_unresolved_recommendations)
+    path('recommended-routes', Interfaces.get_unresolved_recommendations),
+    path('reevaluate-recommendations', Interfaces.reevaluate_recommendations)
 ]

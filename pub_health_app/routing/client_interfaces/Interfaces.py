@@ -36,7 +36,8 @@ def update_emergency_vehicle(request):
                                                                                 emergency__dispatched_vehicle__id=emergency_vehicle.id)
         except RouteRecommendation.DoesNotExist:
             return Response(status=status.HTTP_200_OK)
-        dispachmentResponseDict = {'route': dispatchment.route_geo_json, 'type': dispatchment.emergency.type,
+        dispachmentResponseDict = {'emergency_id': dispatchment.emergency.id, 'route': dispatchment.route_geo_json,
+                                   'type': dispatchment.emergency.type,
                                    'timestamp': dispatchment.emergency.timestamp}
         response = Response(DispatchSerializer(dispachmentResponseDict).data)
         return response
@@ -52,8 +53,8 @@ def add_emergency(request):
             router.get_recommended_vehicle_for_emergency(emergency)
             response = HttpResponse(router.update_map(), content_type="image/png")
             return response
-        except:
-            return Response("NO VEHILCES CURRENTLY AVAILABLE", status.HTTP_200_OK)
+        except Exception as e:
+            return Response(f"Error: {e}", status.HTTP_400_BAD_REQUEST)
     return Response(emergency_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -123,3 +124,24 @@ def get_unresolved_recommendations(request):
     return Response(
         RouteRecommendationJsonSerializer(RouteRecommendation.objects.filter(emergency__resolved=False),
                                           many=True).data)
+
+
+@api_view(['GET'])
+def reevaluate_recommendations(request):
+    undispatched_recommendations = RouteRecommendation.objects.filter(emergency__resolved=False,
+                                                                      emergency__dispatched_vehicle__isnull=True)
+    for undispatched_recommendation in undispatched_recommendations:
+        new_recommendation = router.get_recommended_vehicle_for_emergency(undispatched_recommendation.emergency,
+                                                                          save=False)
+        print(undispatched_recommendation)
+        print(new_recommendation)
+        if undispatched_recommendation and new_recommendation and new_recommendation.vehicle != undispatched_recommendation.vehicle:
+            undispatched_recommendation.vehicle = new_recommendation.vehicle
+            undispatched_recommendation.nodes = new_recommendation.nodes
+            undispatched_recommendation.start_linestring = new_recommendation.start_linestring
+            undispatched_recommendation.end_linestring = new_recommendation.end_linestring
+            undispatched_recommendation.weight = new_recommendation.weight
+            undispatched_recommendation.length = new_recommendation.length
+            undispatched_recommendation.route_geo_json = new_recommendation.route_geo_json
+            undispatched_recommendation.save()
+    return Response(status=status.HTTP_200_OK)
