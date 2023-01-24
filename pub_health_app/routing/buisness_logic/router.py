@@ -142,7 +142,8 @@ class Router:
                                                      length=route[0])
         if shortest_route is None:
             shortest_route = RouteRecommendation(emergency=emergency)
-            shortest_route.save()
+            if save:
+                shortest_route.save()
             return shortest_route
         shortest_route.route_geo_json = self.get_route_as_geojson(shortest_route)
         if save:
