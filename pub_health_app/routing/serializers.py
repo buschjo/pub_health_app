@@ -3,7 +3,7 @@ from rest_framework import serializers
 from .models import EmergencyVehicle, Emergency, RouteRecommendation
 
 
-class EmergencyVehicleSerializer(serializers.HyperlinkedModelSerializer):
+class EmergencyVehicleSerializer(serializers.ModelSerializer):
     class Meta:
         model = EmergencyVehicle
         fields = ['call_name', 'last_ping', 'lat', 'long', 'currently_dispatch']
@@ -11,7 +11,8 @@ class EmergencyVehicleSerializer(serializers.HyperlinkedModelSerializer):
                         'currently_dispatch': {'required': False}}
 
 
-class EmergencySerializer(serializers.HyperlinkedModelSerializer):
+class EmergencySerializer(serializers.ModelSerializer):
+
     class Meta:
         model = Emergency
         fields = ['lat', 'long', 'type', 'dispatched_vehicle', 'resolved', 'timestamp']
@@ -19,7 +20,16 @@ class EmergencySerializer(serializers.HyperlinkedModelSerializer):
                         'timestamp': {'required': False}}
 
 
-class RoteRecommendationSerializer(serializers.HyperlinkedModelSerializer):
+class EmergencyResponseSerializer(serializers.ModelSerializer):
+    dispatched_vehicle = EmergencyVehicleSerializer()
+
+    class Meta:
+        model = Emergency
+        fields = ['lat', 'long', 'type', 'dispatched_vehicle', 'resolved', 'timestamp']
+        extra_kwargs = {'dispatched_vehicle': {'required': False}, 'resolved': {'required': False},
+                        'timestamp': {'required': False}}
+
+class RoteRecommendationSerializer(serializers.ModelSerializer):
     class Meta:
         model = RouteRecommendation
 
@@ -31,6 +41,11 @@ class IdSerializer(serializers.Serializer):
 class RouteRecommendationJsonSerializer(serializers.Serializer):
     id = serializers.IntegerField()
     vehicle = EmergencyVehicleSerializer()
-    emergency = EmergencySerializer()
+    emergency = EmergencyResponseSerializer()
     weight = serializers.FloatField()
     length = serializers.FloatField()
+
+class DispatchSerializer(serializers.Serializer):
+    route = serializers.CharField()
+    type = serializers.CharField()
+    timestamp = serializers.DateTimeField()

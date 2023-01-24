@@ -140,6 +140,9 @@ class Router:
                                                      nodes=route[1], start_linestring=to_geojson(route[2]),
                                                      end_linestring=to_geojson(route[3]), weight=route[4],
                                                      length=route[0])
+        if shortest_route is None:
+            raise Exception("No vehicles available")
+        shortest_route.route_geo_json = self.get_route_as_geojson(shortest_route)
         shortest_route.save()
         return shortest_route
 
@@ -149,9 +152,10 @@ class Router:
         self.update_emergencies(fig, ax)
 
         plt.box(False)
+        plt.axis('off')
 
         buf = BytesIO()
-        plt.savefig(buf, format="png")
+        fig.savefig(buf, format="png", bbox_inches='tight', pad_inches=0)
         return buf.getvalue()
 
     def update_emergency_vehicles(self, fig, ax):
@@ -194,8 +198,11 @@ class Router:
         self.update_emergency_vehicles(fig, ax)
         self.update_emergencies(fig, ax)
 
+        plt.box(False)
+        plt.axis('off')
+
         buf = BytesIO()
-        plt.savefig(buf, format="png")
+        fig.savefig(buf, format="png", bbox_inches='tight', pad_inches=0)
         return buf.getvalue()
 
     def dispatch_to_recommended_route(self, route: RouteRecommendation):

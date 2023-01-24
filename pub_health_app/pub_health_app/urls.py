@@ -33,12 +33,14 @@ urlpatterns = [
     path('', include(router.urls)),
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     path('admin/', admin.site.urls),
-    path('map', views.MapViewSet.as_view(), name="Map"),
+    # path('map', views.MapViewSet.as_view(), name="Map"),
     path('map_josefine', views.index, name='index'),
     path('emergency-vehicle', Interfaces.update_emergency_vehicle),
     path('emergency', Interfaces.add_emergency),
     path('recommended-vehicle', Interfaces.get_recommended_vehicle_for_emergency),
-    path('recommended-route-map', Interfaces.get_map_of_route),
+    path('recommended-route-map/<int:id>', Interfaces.get_map_of_route),
     path('dispatch', Interfaces.dispatch_vehicle),
-    path('resolve', Interfaces.resolve_emergency)
+    path('resolve', Interfaces.resolve_emergency),
+    path('map', Interfaces.get_map),
+    path('recommended-routes', Interfaces.get_unresolved_recommendations)
 ]

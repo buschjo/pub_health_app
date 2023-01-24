@@ -26,7 +26,7 @@ class Emergency(models.Model):
     timestamp = models.DateTimeField(default=timezone.now())
 
     def __str__(self):
-        return f'Emergency: {self.type} at Position {self.lat},{self.long}, is vehicle dispatched to:  {self.dispatched_to}, is resolved: {self.resolved} '
+        return f'Emergency: {self.type} at Position {self.lat},{self.long}, dispatched vehicle: {self.dispatched_vehicle}, is resolved: {self.resolved} '
 
 
 class RouteRecommendation(models.Model):
@@ -37,6 +37,7 @@ class RouteRecommendation(models.Model):
     end_linestring = models.CharField(max_length=1000)
     weight = models.FloatField()
     length = models.FloatField()
+    route_geo_json = models.CharField(max_length=9000)
 
     def get_tc_tupel(self):
         return self.length, self.nodes, from_geojson(self.start_linestring), from_geojson(self.end_linestring)
