@@ -7,7 +7,7 @@ class IntegerListField(models.CharField):
     description = 'list of integers'
 
     def from_db_value(self, value, expression, connection):
-        if value is None:
+        if value is None or value == "":
             return None
         return list(map(int, value.split(',')))
 

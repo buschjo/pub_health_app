@@ -40,7 +40,17 @@ class RouteRecommendation(models.Model):
     route_geo_json = models.CharField(max_length=9000, null=True)
 
     def get_tc_tupel(self):
-        return self.length, self.nodes, from_geojson(self.start_linestring), from_geojson(self.end_linestring)
+        start_linestring = self.start_linestring
+        end_linestring = self.end_linestring
+        if start_linestring == "[]":
+            start_linestring = None
+        if end_linestring == "[]":
+            end_linestring = None
+            print("here")
+
+        print(end_linestring)
+
+        return self.length, self.nodes, from_geojson(start_linestring), from_geojson(end_linestring)
 
     def get_start_linestring(self):
         return from_geojson(self.start_linestring)

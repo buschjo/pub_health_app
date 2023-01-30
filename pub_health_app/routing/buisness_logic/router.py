@@ -152,8 +152,8 @@ class Router:
 
     def update_map(self) -> bytes:
         fig, ax = self.get_map()
-        self.update_emergency_vehicles(fig, ax)
-        self.update_emergencies(fig, ax)
+        fig, ax = self.update_emergency_vehicles(fig, ax)
+        fig, ax = self.update_emergencies(fig, ax)
 
         plt.box(False)
         plt.axis('off')
@@ -220,7 +220,9 @@ class Router:
         pass
 
     def get_route_as_geojson(self, route: RouteRecommendation):
-        linestrings = [route.get_start_linestring()]
+        linestrings = []
+        if route.get_start_linestring():
+            linestrings.append(route.get_start_linestring())
         for u, v in zip(route.nodes[:-1], route.nodes[1:]):
             data = min(self.graph.get_edge_data(u, v).values(), key=lambda d: d[self.WEIGHT])
             if "geometry" in data:
@@ -228,7 +230,9 @@ class Router:
             else:
                 linestrings.append(LineString([(self.graph.nodes[u]["x"], self.graph.nodes[u]["y"]),
                                                (self.graph.nodes[v]["x"], self.graph.nodes[v]["y"])]))
-        linestrings.append(route.get_end_linestring())
+        if route.get_end_linestring():
+            linestrings.append(route.get_end_linestring())
+        print(linestrings)
         multi_line_string = MultiLineString(linestrings)
         return to_geojson(ops.linemerge(multi_line_string))
 

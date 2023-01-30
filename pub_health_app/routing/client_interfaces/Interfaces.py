@@ -27,6 +27,8 @@ def update_emergency_vehicle(request):
         try:
             emergency_vehicle = EmergencyVehicle.objects.get(
                 call_name=emergency_vehicle_serializer.validated_data['call_name'])
+            emergency_vehicle.lat = emergency_vehicle_serializer.validated_data['lat']
+            emergency_vehicle.long = emergency_vehicle_serializer.validated_data['long']
         except EmergencyVehicle.DoesNotExist:
             emergency_vehicle = emergency_vehicle_serializer.save()
         emergency_vehicle.last_ping = timezone.now()
@@ -133,9 +135,7 @@ def reevaluate_recommendations(request):
     for undispatched_recommendation in undispatched_recommendations:
         new_recommendation = router.get_recommended_vehicle_for_emergency(undispatched_recommendation.emergency,
                                                                           save=False)
-        print(undispatched_recommendation)
-        print(new_recommendation)
-        if undispatched_recommendation and new_recommendation and new_recommendation.vehicle != undispatched_recommendation.vehicle:
+        if undispatched_recommendation and new_recommendation:
             undispatched_recommendation.vehicle = new_recommendation.vehicle
             undispatched_recommendation.nodes = new_recommendation.nodes
             undispatched_recommendation.start_linestring = new_recommendation.start_linestring
