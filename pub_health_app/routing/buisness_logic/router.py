@@ -33,6 +33,7 @@ class Router:
                    "HaUwLXM2aimAfutceDmG1iGXDPzhDyxx"]
 
     WEIGHT = "travel_time"
+    #WEIGHT = "travelTimeInSeconds"
 
     graph = None
     edges = None
@@ -43,6 +44,7 @@ class Router:
         self.graph = ox.add_edge_speeds(self.graph)  # Impute
         self.graph = ox.add_edge_travel_times(self.graph)  # Travel time
         self.nodes, self.edges = ox.graph_to_gdfs(self.graph, nodes=True, edges=True)
+        self.remove_oneway_restriction()
         # self.add_live_data_to_graph()
         # generate Map
         self.get_map()
@@ -116,9 +118,15 @@ class Router:
         self.nodes.set_index("osmid", inplace=True)
         self.edges.set_index(["u", "v", "key"], inplace=True)
         self.graph = ox.graph_from_gdfs(self.nodes, self.edges)
+	
+		
+    def remove_oneway_restriction(self):
+        self.edges["oneway"] = False
+        print("One Way streets turned off")
+
 
     def get_map(self):
-        # ec = ox.plot.get_edge_colors_by_attr(self.graph, attr="trafficDelayInSeconds", cmap="RdYlGn_r")
+        #ec = ox.plot.get_edge_colors_by_attr(self.graph, attr="trafficDelayInSeconds", cmap="RdYlGn_r")
         ec = ox.plot.get_edge_colors_by_attr(self.graph, attr="length", cmap="RdYlGn_r")
         return ox.plot_graph(
             self.graph, show=False, save=False, close=False, edge_color=ec, node_color="gray",
@@ -160,6 +168,10 @@ class Router:
 
         buf = BytesIO()
         fig.savefig(buf, format="png", bbox_inches='tight', pad_inches=0)
+
+        plt.close(fig)
+        fig.clf()
+
         return buf.getvalue()
 
     def update_emergency_vehicles(self, fig, ax):
@@ -207,6 +219,10 @@ class Router:
 
         buf = BytesIO()
         fig.savefig(buf, format="png", bbox_inches='tight', pad_inches=0)
+
+        plt.close(fig)
+        fig.clf()
+
         return buf.getvalue()
 
     def dispatch_to_recommended_route(self, route: RouteRecommendation):
