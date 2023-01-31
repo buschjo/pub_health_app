@@ -32,8 +32,8 @@ class Router:
                    "Aw8RSGKN2jmHh3HVi6APgTmlu6SZVwAG", "DcUnnhbjYjbR4fd4c0bUBYUz5PYa9Ttb",
                    "HaUwLXM2aimAfutceDmG1iGXDPzhDyxx"]
 
-    WEIGHT = "travel_time"
-    #WEIGHT = "travelTimeInSeconds"
+    #WEIGHT = "travel_time"
+    WEIGHT = "travelTimeInSeconds"
 
     graph = None
     edges = None
@@ -45,7 +45,7 @@ class Router:
         self.graph = ox.add_edge_travel_times(self.graph)  # Travel time
         self.nodes, self.edges = ox.graph_to_gdfs(self.graph, nodes=True, edges=True)
         self.remove_oneway_restriction()
-        # self.add_live_data_to_graph()
+        self.add_live_data_to_graph()
         # generate Map
         self.get_map()
 
@@ -126,8 +126,8 @@ class Router:
 
 
     def get_map(self):
-        #ec = ox.plot.get_edge_colors_by_attr(self.graph, attr="trafficDelayInSeconds", cmap="RdYlGn_r")
-        ec = ox.plot.get_edge_colors_by_attr(self.graph, attr="length", cmap="RdYlGn_r")
+        ec = ox.plot.get_edge_colors_by_attr(self.graph, attr="trafficDelayInSeconds", cmap="RdYlGn_r")
+        #ec = ox.plot.get_edge_colors_by_attr(self.graph, attr="length", cmap="RdYlGn_r")
         return ox.plot_graph(
             self.graph, show=False, save=False, close=False, edge_color=ec, node_color="gray",
             edge_linewidth=3
